@@ -318,6 +318,7 @@ void setSensitive(const uint16_t  _SensorSensitive)
 int refSensor(int ch){
   return ( _max_sensor_values[ch] + _min_sensor_values[ch] ) / 2 ;
 }
+
 int readSensorMinValue(uint8_t _Pin) {
   return _min_sensor_values[_Pin];
 }
@@ -425,3 +426,97 @@ void run_PID(int RUN_PID_speed , int RUN_PID_Mspeed, float RUN_PID_KP, float RUN
 //*********************************************************  TC01Sensor **********************************************************************************************
 //*********************************************************  TC01Sensor **********************************************************************************************
 //*********************************************************  TC01Sensor **********************************************************************************************
+
+int _sensorPins_B[10];
+int _NumofSensor_B = 0;
+int _min_sensor_values_B[10];
+int _max_sensor_values_B[10];
+int _lastPosition_B = 0;
+int _Sensitive_B  = 30;
+int stateOfRunPID_B = 0;
+float  errors_B = 0, output_B = 0, integral_B = 0, derivative_B = 0, previous_error_B = 0;
+void setSensorPins_B(const int * _pins, int _NumofSensor_)
+{
+  _NumofSensor_B = _NumofSensor_;
+  // _sensorPins = (int *)realloc(_sensorPins, sizeof(int) * _NumofSensor_);
+  // _min_sensor_values = (int *)realloc(_min_sensor_values, sizeof(int) * _NumofSensor_);
+  // _max_sensor_values = (int *)realloc(_max_sensor_values, sizeof(int) * _NumofSensor_);
+  for (uint8_t i = 0; i < _NumofSensor_B; i++)
+  {
+    _sensorPins_B[i] = _pins[i];
+    _min_sensor_values_B[i] = 1023;
+    _max_sensor_values_B[i] = 0;
+  }
+
+}
+void setSensorMin_B(const int * _MinSensor)
+{
+  for (uint8_t i = 0; i < _NumofSensor_B; i++)
+  {
+    _min_sensor_values_B[i] = _MinSensor[i];
+  }
+}
+void setSensorMax_B(const int * _MaxSensor)
+{
+  for (uint8_t i = 0; i < _NumofSensor_B; i++)
+  {
+    _max_sensor_values_B[i] = _MaxSensor[i];
+  }
+}
+int refSensor_B(int ch){
+  return ( _max_sensor_values_B[ch] + _min_sensor_values_B[ch] ) / 2 ;
+}
+int readline_B()
+{
+  bool onLine = false;
+  long avg = 0;
+  long sum = 0;
+  for (uint8_t i = 0; i < _NumofSensor_B; i++)
+  {
+    long value = map(ADC(_sensorPins_B[i]), _min_sensor_values_B[i], _max_sensor_values_B[i], 100, 0);
+    if (value > _Sensitive_B) {
+      onLine = true;
+    }
+    if (value > 5)
+    {
+      avg += (long)value * (i * 100);
+      sum += value;
+    }
+  }
+  if (!onLine)
+  {
+    if (_lastPosition_B < (_NumofSensor_B - 1) * 100 / 2)
+    {
+      return 0;
+    }
+    else
+    {
+      return (_NumofSensor_B - 1) * 100;
+    }
+  }
+  _lastPosition_B = avg / sum;
+  return _lastPosition_B;
+}
+void run_PID_B(int RUN_PID_speed , int RUN_PID_Mspeed, float RUN_PID_KP, float RUN_PID_KD) {
+  int speed_PID = RUN_PID_speed;
+  int present_position = readline_B();
+  int setpoint = ((_NumofSensor_B - 1) * 100) / 2;
+  errors = present_position - setpoint;
+  integral = integral + errors ;
+  derivative = (errors - previous_error) ;
+  output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
+    previous_error = errors;
+  int max_output = RUN_PID_Mspeed;
+  if (output > max_output)output = max_output;
+  else if (output < -max_output)output = -max_output;
+  int m1Speed = speed_PID - output ;
+  int m2Speed = speed_PID + output;
+  if(m1Speed < 0 )m1Speed = 0;
+  if(m2Speed < 0 )m2Speed = 0;
+
+  motor(1,-m1Speed);
+  motor(2,-m2Speed);
+  delay(1);
+    previous_error_B = errors;
+
+}
