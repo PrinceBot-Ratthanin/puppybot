@@ -91,29 +91,29 @@ void motor(int pin, int speed_Motor) {
   if (speed_Motor > 100)speed_Motor = 100;
   if (speed_Motor < -100)speed_Motor = -100;
   if (pin == 1) {
-    if (speed_Motor > 0) {
+    if (speed_Motor < 0) {
       // Serial.println(speed_Motor);
       speed_Motor = abs(speed_Motor) * 10.23;
-      analogWrite(motor1B, 0);
-      analogWrite(motor1A, abs(speed_Motor));
+      analogWrite(motor1B, 1023);
+      analogWrite(motor1A, 1023-abs(speed_Motor));
 
     }
     else {
       speed_Motor = abs(speed_Motor) * 10.23;
-      analogWrite(motor1A, 0);
-      analogWrite(motor1B,  abs(speed_Motor));
+      analogWrite(motor1A, 1023);
+      analogWrite(motor1B, 1023- abs(speed_Motor));
     }
   }
   else if (pin == 2) {
-    if (speed_Motor > 0) {
+    if (speed_Motor < 0) {
       speed_Motor = abs(speed_Motor) * 10.23;
-      analogWrite(motor2B, 0);
-      analogWrite(motor2A, abs(speed_Motor));
+      analogWrite(motor2B, 1023);
+      analogWrite(motor2A, 1023-abs(speed_Motor));
     }
     else {
       speed_Motor = abs(speed_Motor) * 10.23;
-      analogWrite(motor2A, 0);
-      analogWrite(motor2B, abs(speed_Motor));
+      analogWrite(motor2A, 1023);
+      analogWrite(motor2B, 1023-abs(speed_Motor));
     }
   }
 }
@@ -157,6 +157,12 @@ void motor_control(uint8_t state , int _speed) {
       } break;
   }
 }
+void ao(){
+	analogWrite(motor1B, 0);
+	analogWrite(motor1A, 0);
+	analogWrite(motor2B, 0);
+	analogWrite(motor2A, 0);
+}
 void motorStop(int motor_ch){
   	if(motor_ch < 1){
 	  analogWrite(motor1B, 0);
@@ -189,6 +195,29 @@ void motorBreak(int motor_ch){
 	  analogWrite(motor2A, 1023);
 	}
 }
+void fd(int speed_Motor){
+	motor(1,speed_Motor);
+	motor(2,speed_Motor);
+}
+void bk(int speed_Motor){
+	motor(1,-speed_Motor);
+	motor(2,-speed_Motor);
+}
+void tl(int speed_Motor){
+	motor(2,speed_Motor);
+}
+void tr(int speed_Motor){
+	motor(1,speed_Motor);
+}
+void sl(int speed_Motor){
+	motor(1,-speed_Motor);
+	motor(2,speed_Motor);
+}
+void sr(int speed_Motor){
+	motor(1,speed_Motor);
+	motor(2,-speed_Motor);
+}
+
 void servoRun(uint8_t servo_ch, int16_t angle) {
   if (servo_ch == 1)
   {
