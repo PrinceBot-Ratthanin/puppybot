@@ -219,37 +219,26 @@ void sr(int speed_Motor){
 }
 
 void servoRun(uint8_t servo_ch, int16_t angle) {
+
   if (servo_ch == 1)
   {
-    if (!(servo1.attached()))
-    {
-      servo1.attach(_servo1);
-    }
-    servo1.write(angle);
+    if(angle == -1){servo1.detach();}
+    servo1.attach(_servo1,300,2500,angle);
   }
   if (servo_ch == 2)
   {
-    if (!(servo2.attached()))
-    {
-      servo2.attach(_servo2);
-    }
-    servo2.write(angle);
+    if(angle == -1){servo2.detach();}
+    servo2.attach(_servo2,300,2500,angle);
   }
   if (servo_ch == 3)
   {
-    if (!(servo3.attached()))
-    {
-      servo3.attach(_servo3);
-    }
-    servo3.write(angle);
+    if(angle == -1){servo3.detach();}
+    servo3.attach(_servo3,300,2500,angle);
   }
   if (servo_ch == 4)
   {
-    if (!(servo4.attached()))
-    {
-      servo4.attach(_servo4);
-    }
-    servo4.write(angle);
+    if(angle == -1){servo4.detach();}
+    servo4.attach(_servo4,300,2500,angle);
   }
 }
 int ultrasonic(uint8_t Echo_pin , uint8_t Trig_pin) {
