@@ -25,7 +25,7 @@ Servo servo4;
 #define motor2A  2
 #define motor2B  3
 
-void poppybot_setup() {
+void puppybot_setup() {
   analogWriteResolution(10);
   analogWriteRange(1023);
   tft.initR(INITR_BLACKTAB);
