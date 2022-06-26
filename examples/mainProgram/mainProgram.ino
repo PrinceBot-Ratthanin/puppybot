@@ -94,7 +94,7 @@ void yok(){
   degree_servo1 = 90;
 }
 void setup() {
-  poppybot_setup();
+  puppybot_setup();
   buzzer(200, 100);
   buzzer(400, 100);
   Serial.begin(115200);
