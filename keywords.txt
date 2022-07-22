@@ -1,0 +1,51 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+#puppybot (KEYWORD1)
+#######################################
+
+puppybot_setup	KEYWORD1
+puppybot	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+ADC	KEYWORD2
+buzzer	KEYWORD2
+printText	KEYWORD2
+wait_SW1		KEYWORD2
+motor		KEYWORD2
+motor_control		KEYWORD2
+ao	KEYWORD2
+motorStop		KEYWORD2
+motorBreak		KEYWORD2
+fd		KEYWORD2
+bk		KEYWORD2
+tl	KEYWORD2
+tr	KEYWORD2
+sl		KEYWORD2
+sr		KEYWORD2
+servoRun		KEYWORD2
+ultrasonic		KEYWORD2
+
+setSensorPins		KEYWORD2
+setSensorMin		KEYWORD2
+setSensorMax		KEYWORD2
+setSensitive		KEYWORD2
+refSensor		KEYWORD2
+readSensorMinValue		KEYWORD2
+readSensorMaxValue		KEYWORD2
+setCalibrate		KEYWORD2
+readline		KEYWORD2
+run_PID		KEYWORD2
+setSensorPins_B		KEYWORD2
+setSensorMin_B		KEYWORD2
+setSensorMax_B		KEYWORD2
+refSensor_B		KEYWORD2
+readline_B		KEYWORD2
+run_PID_B		KEYWORD2
+
+
