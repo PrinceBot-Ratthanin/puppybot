@@ -49,6 +49,19 @@ int ADC(int analog_CH) {
   }
   return val;
 }
+int IN(int _pins) {
+  if (_pins == 1) {_pins = 25;}
+  else if(_pins >=2 && _pins <=4){_pins = 25 +_pins;}
+  else{return 0;}
+  pinMode(_pins, INPUT); 
+  return digitalRead(_pins);
+}
+void OUT(int _pins,uint8_t _Status){
+  if (_pins == 1) {_pins = 25;}
+  else if(_pins >=2 && _pins <=4){_pins = 25 +_pins;}
+  pinMode(_pins, OUTPUT); 
+  digitalWrite(_pins,_Status);
+}
 void buzzer(int freq, int timr_delay) {
   pinMode(7, OUTPUT);
   tone(7, freq);

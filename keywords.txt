@@ -14,6 +14,8 @@ puppybot	KEYWORD1
 #######################################
 
 ADC	KEYWORD2
+IN	KEYWORD2
+OUT	KEYWORD2
 buzzer	KEYWORD2
 printText	KEYWORD2
 wait_SW1		KEYWORD2
