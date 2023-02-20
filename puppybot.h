@@ -248,11 +248,11 @@ void motorBreak(){
 }
 void motorBreak(int motor_ch){
   
-	if(motor_ch < 2 ){
+	if(motor_ch == 1 ){
 	  analogWrite(motor1B, 1023);
 	  analogWrite(motor1A, 1023);
 	}
-	else if(motor_ch < 3 ){
+	else if(motor_ch == 2 ){
 	  analogWrite(motor2B, 1023);
 	  analogWrite(motor2A, 1023);
 	}
