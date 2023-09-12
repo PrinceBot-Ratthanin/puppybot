@@ -25,10 +25,15 @@ Servo servo4;
 #define _servo4 15
 
 
+
 #define motor1A  0
 #define motor1B  1
 #define motor2A  2
 #define motor2B  3
+#define motor3A  10
+#define motor3B  11
+#define motor4A  8
+#define motor4B  9
 
 int _sensorPins[20];
 int _NumofSensor = 0;
@@ -169,6 +174,30 @@ void motor(int pin, int speed_Motor) {
       analogWrite(motor2B, 1023-abs(speed_Motor));
     }
   }
+  else if (pin == 3) {
+    if (speed_Motor < 0) {
+      speed_Motor = abs(speed_Motor) * 10.23;
+      analogWrite(motor3B, 1023);
+      analogWrite(motor3A, 1023-abs(speed_Motor));
+    }
+    else {
+      speed_Motor = abs(speed_Motor) * 10.23;
+      analogWrite(motor3A, 1023);
+      analogWrite(motor3B, 1023-abs(speed_Motor));
+    }
+  }
+  else if (pin == 4) {
+    if (speed_Motor < 0) {
+      speed_Motor = abs(speed_Motor) * 10.23;
+      analogWrite(motor4B, 1023);
+      analogWrite(motor4A, 1023-abs(speed_Motor));
+    }
+    else {
+      speed_Motor = abs(speed_Motor) * 10.23;
+      analogWrite(motor4A, 1023);
+      analogWrite(motor4B, 1023-abs(speed_Motor));
+    }
+  }
 }
 void motor_control(uint8_t state , int _speed) {
   switch (state) {
@@ -215,6 +244,10 @@ void ao(){
 	analogWrite(motor1A, 1023);
 	analogWrite(motor2B, 1023);
 	analogWrite(motor2A, 1023);
+	analogWrite(motor3B, 1023);
+	analogWrite(motor3A, 1023);
+	analogWrite(motor4B, 1023);
+	analogWrite(motor4A, 1023);
 }
 void aoS(int speed_break){
   speed_break = constrain(speed_break, 0, 100);
@@ -248,11 +281,11 @@ void motorBreak(){
 }
 void motorBreak(int motor_ch){
   
-	if(motor_ch == 1 ){
+	if(motor_ch < 2 ){
 	  analogWrite(motor1B, 1023);
 	  analogWrite(motor1A, 1023);
 	}
-	else if(motor_ch == 2 ){
+	else if(motor_ch < 3 ){
 	  analogWrite(motor2B, 1023);
 	  analogWrite(motor2A, 1023);
 	}
@@ -266,6 +299,8 @@ void motorBreak(int motor_ch){
 void fd(int speed_Motor){
 	motor(1,speed_Motor);
 	motor(2,speed_Motor);
+	motor(3,speed_Motor);
+	motor(4,speed_Motor);
 }
 void fd2(int speed_MotorA,int speed_MotorB){
   motor(1,speed_MotorA);
@@ -274,6 +309,8 @@ void fd2(int speed_MotorA,int speed_MotorB){
 void bk(int speed_Motor){
 	motor(1,-speed_Motor);
 	motor(2,-speed_Motor);
+	motor(3,-speed_Motor);
+	motor(4,-speed_Motor);
 }
 void bk2(int speed_MotorA,int speed_MotorB){
   motor(1,-speed_MotorA);
