@@ -267,10 +267,6 @@ void motorStop(int motor_ch){
 	  analogWrite(motor3A, 0);
 	  analogWrite(motor4B, 0);
 	  analogWrite(motor4A, 0);
-	  analogWrite(motor5B, 0);
-	  analogWrite(motor5A, 0);
-	  analogWrite(motor6B, 0);
-	  analogWrite(motor6A, 0);
 	}
 	else if(motor_ch == 1 ){
 	  analogWrite(motor1B, 0);
@@ -288,14 +284,6 @@ void motorStop(int motor_ch){
 	  analogWrite(motor4B, 0);
 	  analogWrite(motor4A, 0);
 	}
-	else if(motor_ch == 5 ){
-	  analogWrite(motor5B, 0);
-	  analogWrite(motor5A, 0);
-	}
-	else if(motor_ch == 6 ){
-	  analogWrite(motor6B, 0);
-	  analogWrite(motor6A, 0);
-	}
 	else{
 	  analogWrite(motor1B, 0);
 	  analogWrite(motor1A, 0);
@@ -305,10 +293,6 @@ void motorStop(int motor_ch){
 	  analogWrite(motor3A, 0);
 	  analogWrite(motor4B, 0);
 	  analogWrite(motor4A, 0);
-	  analogWrite(motor5B, 0);
-	  analogWrite(motor5A, 0);
-	  analogWrite(motor6B, 0);
-	  analogWrite(motor6A, 0);
 	}
 }
 void motorBreak(){
@@ -320,10 +304,6 @@ void motorBreak(){
     analogWrite(motor3A, 1023);
     analogWrite(motor4B, 1023);
     analogWrite(motor4A, 1023);
-    analogWrite(motor5B, 1023);
-    analogWrite(motor5A, 1023);
-    analogWrite(motor6B, 1023);
-    analogWrite(motor6A, 1023);
 }
 void motorBreak(int motor_ch){
   
@@ -336,10 +316,7 @@ void motorBreak(int motor_ch){
 	  analogWrite(motor3A, 1023);
 	  analogWrite(motor4B, 1023);
 	  analogWrite(motor4A, 1023);
-	  analogWrite(motor5B, 1023);
-	  analogWrite(motor5A, 1023);
-	  analogWrite(motor6B, 1023);
-	  analogWrite(motor6A, 1023);
+
 	}
 	else if(motor_ch == 1 ){
 	  analogWrite(motor1B, 1023);
@@ -357,14 +334,6 @@ void motorBreak(int motor_ch){
 	  analogWrite(motor4B, 1023);
 	  analogWrite(motor4A, 1023);
 	}
-	else if(motor_ch == 5 ){
-	  analogWrite(motor5B, 1023);
-	  analogWrite(motor5A, 1023);
-	}
-	else if(motor_ch == 6 ){
-	  analogWrite(motor6B, 1023);
-	  analogWrite(motor6A, 1023);
-	}
 	else{
 	  analogWrite(motor1B, 1023);
 	  analogWrite(motor1A, 1023);
@@ -374,10 +343,6 @@ void motorBreak(int motor_ch){
 	  analogWrite(motor3A, 1023);
 	  analogWrite(motor4B, 1023);
 	  analogWrite(motor4A, 1023);
-	  analogWrite(motor5B, 1023);
-	  analogWrite(motor5A, 1023);
-	  analogWrite(motor6B, 1023);
-	  analogWrite(motor6A, 1023);
 	}
 }
 void fd(int speed_Motor){
