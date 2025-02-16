@@ -1,6 +1,7 @@
 #include <puppybot.h>
 
 /*ตัวอย่างคำสั่งสำหรับการใช้งานมอเตอร์
+ao();  	      //หยุดมอเตอร์แบบ เบรคทั้ง 4 ตัว
 fd(50);       //เดินหน้า   ด้วยความเร็ว  50 %
 bk(30);       //ถอยหลัง   ด้วยความเร็ว  30 %
 tl(45);       //เลี้ยวซ้าย   ด้วยความเร็ว  45 %
@@ -24,8 +25,44 @@ void setup() {
  bk(30);
  delay(1000);
  motorBreak(0);
+wait_SW1();
 }
 
 void loop() {
+  motor(1,50);
+ motor(2,50);
+ motor(3,50);
+ motor(4,50);
+ delay(1000);
+
+ motor(1,100);
+ motor(2,100);
+ motor(3,100);
+ motor(4,100);
+ delay(1000);
+ 
+ motor(1,0);
+ motor(2,0);
+ motor(3,0);
+ motor(4,0);
+ delay(1000);
+
+  motor(1,-50);
+ motor(2,-50);
+ motor(3,-50);
+ motor(4,-50);
+ delay(1000);
+ 
+ motor(1,-100);
+ motor(2,-100);
+ motor(3,-100);
+ motor(4,-100);
+ delay(1000);
+ 
+ motor(1,0);
+ motor(2,0);
+ motor(3,0);
+ motor(4,0);
+ delay(1000);
   
 }

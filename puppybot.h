@@ -107,6 +107,31 @@ void printText(uint8_t x,uint8_t y,String text,uint8_t size,uint16_t  color1,uin
   tft_.setTextWrap(true);
   tft_.println(text);
 }
+void printNumber(uint8_t x,uint8_t y,long text,uint8_t size,uint16_t  color1,uint16_t  color2){
+  tft_.setCursor(x, y);
+  tft_.setTextSize(size);
+  tft_.setTextColor(color1,color2);
+  tft_.setTextWrap(true);
+  String text_ ;
+  if(text <9){
+    text_ = String(text) + " "+ " "+ " "; 
+  }
+  else if(text <99){
+    text_ =  String(text) + " "+ " "; 
+  }
+  else if(text <999){
+    text_ =  String(text) + " "; 
+  }
+  else if(text <9999){
+    text_ =  String(text) + " "; 
+  }
+  else{
+   text_ =  String(text) ; 
+  }
+
+  //text_ =  String(text) ;
+  tft_.println(text_);
+}
 void wait_SW1() {
   int state_waitSW1 = 0;
   pinMode(6, INPUT_PULLUP);
@@ -116,17 +141,17 @@ void wait_SW1() {
   do {
     
     tft_.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft_.drawString("0="+String(ADC(0)),0,0);
-    tft_.drawString("1="+String(ADC(1)),80,0);
-    tft_.drawString("2="+String(ADC(2)),0,17);
-    tft_.drawString("3="+String(ADC(3)),80,17);
-    tft_.drawString("4="+String(ADC(4)),0,34);
-    tft_.drawString("5="+String(ADC(5)),80,34);
-    tft_.drawString("6="+String(ADC(6)),0,51);
-    tft_.drawString("7="+String(ADC(7)),80,51);
-    tft_.drawString("8="+String(ADC(8)),0,68);
-    tft_.drawString("9="+String(ADC(9)),80,68);
-    tft_.drawString("10="+String(ADC(10)),0,85);
+    tft_.drawString("0="+String(ADC(0))+"  ",0,0);
+    tft_.drawString("1="+String(ADC(1))+"  ",80,0);
+    tft_.drawString("2="+String(ADC(2))+"  ",0,17);
+    tft_.drawString("3="+String(ADC(3))+"  ",80,17);
+    tft_.drawString("4="+String(ADC(4))+"  ",0,34);
+    tft_.drawString("5="+String(ADC(5))+"  ",80,34);
+    tft_.drawString("6="+String(ADC(6))+"  ",0,51);
+    tft_.drawString("7="+String(ADC(7))+"  ",80,51);
+    tft_.drawString("8="+String(ADC(8))+"  ",0,68);
+    tft_.drawString("9="+String(ADC(9))+"  ",80,68);
+    tft_.drawString("10="+String(ADC(10))+"  ",0,85);
     if(state_waitSW1 == 0){
       state_waitSW1 = 1;
       tft_.setTextColor(TFT_RED, TFT_BLUE);
@@ -143,6 +168,7 @@ void wait_SW1() {
   } while (digitalRead(6) == 1);
   tft_.fillScreen(ST77XX_BLACK);
   buzzer(500,100);
+  delay(500);
 }
 
 void motor(int pin, int speed_Motor) {
@@ -821,4 +847,118 @@ void setCalibrate_B(int cal_round) {
   if(_NumofSensor_B >8){tft_.setCursor(0, 80);tft_.print("A8 >> Min="+String(readSensorMinValue(8))+"  Max="+String(readSensorMaxValue(8)));}
   if(_NumofSensor_B >9){tft_.setCursor(0, 90);tft_.print("A9 >> Min="+String(readSensorMinValue(9))+"  Max="+String(readSensorMaxValue(9)));}
   if(_NumofSensor_B >10){tft_.setCursor(0, 100);tft_.print("A10 >> Min="+String(readSensorMinValue(10))+"  Max="+String(readSensorMaxValue(10)));}
+}
+
+
+
+
+
+
+
+bool Read_status_sensor(int pin_sensor){
+	return ADC(_sensorPins[pin_sensor]) < ((_max_sensor_values[pin_sensor] + _min_sensor_values[pin_sensor]) / 2) ? true : false;
+}
+bool Read_status_sensor_B(int pin_sensor){
+	return ADC(_sensorPins_B[pin_sensor]) < ((_max_sensor_values_B[pin_sensor] + _min_sensor_values_B[pin_sensor]) / 2) ? true : false;
+}
+
+int Read_sumValue_sensor(){
+	int value = 0;
+	for(int i = 0;i<_NumofSensor;i++){
+		value +=ReadLightSensor(i);
+	}
+    return value;
+}
+
+int Read_sumValue_sensor_B(){
+  int value = 0;
+  for(int i = 0;i<_NumofSensor_B;i++){
+    value += ReadLightSensor_B(i);
+  }
+    return value;
+}
+
+
+int ReadSensorMinValue_B(uint8_t _Pin){
+    return _min_sensor_values_B[_Pin];
+}
+int ReadSensorMaxValue_B(uint8_t _Pin){
+    return _max_sensor_values_B[_Pin];
+}
+
+void Run_PID_B_until_backSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_KD,int sumValue_traget){
+  do{
+    int present_position_B = readline_B();
+    int setpoint_B = ((_NumofSensor_B - 1) * 100) / 2;
+    errors_B = present_position_B - setpoint_B;
+    integral_B = integral_B + errors_B ;
+    derivative_B = (errors_B - previous_error_B) ;
+    output_B = RUN_PID_KP * errors_B  + RUN_PID_KD * derivative_B;
+    
+    int m1Speed = RUN_PID_speed - output_B ;
+    int m2Speed = RUN_PID_speed + output_B;
+
+    motor(1,-m1Speed);
+    motor(2,-m2Speed);
+    delay(1);
+    previous_error_B = errors_B;
+  }while(Read_sumValue_sensor_B() < sumValue_traget);
+}
+void Run_PID_B4DW_until_backSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_KD ,int sumValue_traget){
+  do{
+    int present_position_B = readline_B();
+    int setpoint_B = ((_NumofSensor_B - 1) * 100) / 2;
+    errors_B = present_position_B - setpoint_B;
+    integral_B = integral_B + errors_B ;
+    derivative_B = (errors_B - previous_error_B) ;
+    output_B = RUN_PID_KP * errors_B  + RUN_PID_KD * derivative_B;
+    
+    int m1Speed = RUN_PID_speed - output_B ;
+    int m2Speed = RUN_PID_speed + output_B;
+
+    motor(1,-m1Speed);
+    motor(2,-m2Speed);
+    motor(3,-m1Speed);
+    motor(4,-m2Speed);
+    delay(1);
+    previous_error_B = errors_B;
+  }while(Read_sumValue_sensor_B() < sumValue_traget);
+}
+
+void Run_PID_until_frontSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_KD,int sumValue_traget){
+  do{
+    int present_position = readline();
+    int setpoint = ((_NumofSensor - 1) * 100) / 2;
+    errors = present_position - setpoint;
+    integral = integral + errors ;
+    derivative = (errors - previous_error) ;
+    output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
+    
+    int m1Speed = RUN_PID_speed + output ;
+    int m2Speed = RUN_PID_speed - output;
+    motor(1,m1Speed);
+    motor(2,m2Speed);
+    delay(1);
+    previous_error = errors;
+  }while(Read_sumValue_sensor() < sumValue_traget);
+}
+void Run_PID4DW_until_frontSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_KD ,int sumValue_traget){
+  do{
+    int present_position = readline();
+    int setpoint = ((_NumofSensor - 1) * 100) / 2;
+    errors = present_position - setpoint;
+    integral = integral + errors ;
+    derivative = (errors - previous_error) ;
+    output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
+    
+
+    int m1Speed = RUN_PID_speed + output ;
+    int m2Speed = RUN_PID_speed - output;
+    motor(1,m1Speed);
+    motor(2,m2Speed);
+    motor(3,m1Speed);
+    motor(4,m2Speed);
+    delay(1);
+    previous_error = errors;
+  }while(Read_sumValue_sensor() < sumValue_traget);
 }
