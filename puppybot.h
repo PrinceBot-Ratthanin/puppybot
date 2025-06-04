@@ -1,6 +1,8 @@
 #include <Servo.h>
 #include "TFT_eSPI.h" 
 #include <SPI.h>
+#include <Adafruit_TCS34725.h>
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_4X);
 
 
 #define ST77XX_BLACK TFT_BLACK
@@ -40,19 +42,23 @@ int _NumofSensor = 0;
 int _min_sensor_values[20];
 int _max_sensor_values[20];
 int _lastPosition = 0;
-int _Sensitive  = 20;
+int _Sensitive  = 50;
 int stateOfRunPID = 0;
-float  errors = 0, output = 0, integral = 0, derivative = 0, previous_error = 0;
+float  errors = 0, output = 0, integral = 0, derivative = 0, _previous_error = 0;
 uint8_t FrontLineColor = 0;
 uint8_t BackLineColor = 0;
 
 
 void puppybot_setup() {
+  
   analogWriteResolution(10);
   analogWriteRange(1023);
   tft_.init();
   tft_.setRotation(1);
   tft_.fillScreen(TFT_BLACK);
+  if (tcs.begin()) {
+    Serial.println("Found sensor");
+  }
 
 }
 int ADC(int analog_CH) {
@@ -66,6 +72,7 @@ int ADC(int analog_CH) {
     digitalWrite(22, muxChannel[analog_CH][0]);
     digitalWrite(23, muxChannel[analog_CH][1]);
     digitalWrite(24, muxChannel[analog_CH][2]);
+    delayMicroseconds(5);
     val = analogRead(26);
   }
   else if (analog_CH >= 8 && analog_CH < 11 ) {
@@ -100,6 +107,14 @@ void printText(uint8_t x,uint8_t y,String text,uint8_t size,uint16_t  color){
   tft_.setTextWrap(true);
   tft_.println(text);
 }
+void printText(uint8_t x,uint8_t y,int text,uint8_t size,uint16_t  color){
+  // tft_.setCursor(x, y);
+  // tft_.setTextSize(size);
+  // tft_.setTextColor(color);
+  // tft_.setTextWrap(true);
+  // tft_.println(String(text));
+
+}
 void printText(uint8_t x,uint8_t y,String text,uint8_t size,uint16_t  color1,uint16_t  color2){
   tft_.setCursor(x, y);
   tft_.setTextSize(size);
@@ -107,7 +122,14 @@ void printText(uint8_t x,uint8_t y,String text,uint8_t size,uint16_t  color1,uin
   tft_.setTextWrap(true);
   tft_.println(text);
 }
-void printNumber(uint8_t x,uint8_t y,long text,uint8_t size,uint16_t  color1,uint16_t  color2){
+void printText(uint8_t x,uint8_t y,long text,uint8_t size,uint16_t  color1,uint16_t  color2){
+  tft_.setCursor(x, y);
+  tft_.setTextSize(size);
+  tft_.setTextColor(color1,color2);
+  tft_.setTextWrap(true);
+  tft_.println(String(text));
+}
+void printnumber(uint8_t x,uint8_t y,long text,uint8_t size,uint16_t  color1,uint16_t  color2){
   tft_.setCursor(x, y);
   tft_.setTextSize(size);
   tft_.setTextColor(color1,color2);
@@ -131,6 +153,34 @@ void printNumber(uint8_t x,uint8_t y,long text,uint8_t size,uint16_t  color1,uin
 
   //text_ =  String(text) ;
   tft_.println(text_);
+}
+void printnumber(uint8_t x,uint8_t y,String Input_text,int text,uint8_t size,uint16_t  color1,uint16_t  color2){
+  tft_.setCursor(x, y);
+  tft_.setTextSize(size);
+  tft_.setTextColor(color1,color2);
+  tft_.setTextWrap(true);
+  String text_ ;
+  if(text <9){
+    text_ = String(text) + " "+ " "+ " "; 
+  }
+  else if(text <99){
+    text_ =  String(text) + " "+ " "; 
+  }
+  else if(text <999){
+    text_ =  String(text) + " "; 
+  }
+  tft_.println(Input_text + text_);
+}
+void printnumber(uint8_t x,uint8_t y,String Input_text,uint8_t size,uint16_t  color1,uint16_t  color2){
+  tft_.setCursor(x, y);
+  tft_.setTextSize(size);
+  tft_.setTextColor(color1,color2);
+  tft_.setTextWrap(true);
+  tft_.println(Input_text);
+}
+void drawString(String text, uint8_t x,uint8_t y) {
+  tft_.setCursor(x, y);
+  tft_.println(text);
 }
 void wait_SW1() {
   int state_waitSW1 = 0;
@@ -601,8 +651,8 @@ void setCalibrate(int cal_round) {
 int readline()
 {
   bool onLine = false;
-  long avg = 0;
-  long sum = 0;
+  long avg = 1;
+  long sum = 1;
   for (uint8_t i = 0; i < _NumofSensor; i++)
   {
     long value = ReadLightSensor(i);
@@ -623,11 +673,11 @@ int readline()
   {
     if (_lastPosition < (_NumofSensor - 1) * 100 / 2)
     {
-      return 0;
+      return 10;
     }
     else
     {
-      return (_NumofSensor - 1) * 100;
+      return ((_NumofSensor - 1) * 100);
     }
   }
   _lastPosition = avg / sum;
@@ -639,11 +689,10 @@ void lineFollow_PID(int RUN_PID_speed , float RUN_PID_KP, float RUN_PID_KI, floa
   int speed_PID = RUN_PID_speed;
   int present_position = readline();
   int setpoint = ((_NumofSensor - 1) * 100) / 2;
+  static int _previous_error = 0; 
   errors = present_position - setpoint;
-  if (errors == 0) integral = 0;
-  integral = integral + errors ;
-  derivative = (errors - previous_error) ;
-  output = RUN_PID_KP * errors  + RUN_PID_KI * integral + RUN_PID_KD * derivative;
+  derivative = (errors - _previous_error) ;
+  output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
   //int max_output = RUN_PID_speed;
   // if (output > max_output)output = max_output;
   // else if (output < -max_output)output = -max_output;
@@ -655,7 +704,7 @@ void lineFollow_PID(int RUN_PID_speed , float RUN_PID_KP, float RUN_PID_KI, floa
 
   motor(1,motorL);
   motor(2,motorR);
-  previous_error = errors;
+  _previous_error = errors;
   delay(1);
 
 }
@@ -664,22 +713,22 @@ void run_PID(int RUN_PID_speed , int RUN_PID_Mspeed, float RUN_PID_KP, float RUN
   int present_position = readline();
   int setpoint = ((_NumofSensor - 1) * 100) / 2;
   errors = present_position - setpoint;
-  integral = integral + errors ;
-  derivative = (errors - previous_error) ;
+  static int _previous_error = 0;
+  derivative = (errors - _previous_error) ;
   output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
-    previous_error = errors;
+    _previous_error = errors;
   int max_output = RUN_PID_Mspeed;
   if (output > max_output)output = max_output;
   else if (output < -max_output)output = -max_output;
   int m1Speed = speed_PID + output ;
   int m2Speed = speed_PID - output;
-  if(m1Speed < 0 )m1Speed = 0;
-  if(m2Speed < 0 )m2Speed = 0;
+  m1Speed = constrain(m1Speed, 0, RUN_PID_speed);
+    m2Speed = constrain(m2Speed, 0, RUN_PID_speed);
 
   motor(1,m1Speed);
   motor(2,m2Speed);
   delay(1);
-    previous_error = errors;
+    _previous_error = errors;
 
 }
 //*********************************************************  TC01Sensor **********************************************************************************************
@@ -693,7 +742,7 @@ int _max_sensor_values_B[20];
 int _lastPosition_B = 0;
 int _Sensitive_B  = 20;
 int stateOfRunPID_B = 0;
-float  errors_B = 0, output_B = 0, integral_B = 0, derivative_B = 0, previous_error_B = 0;
+float  errors_B = 0, output_B = 0, integral_B = 0, derivative_B = 0, _previous_error_B = 0;
 void setSensorPins_B(const int * _pins, int _NumofSensor_)
 {
   _NumofSensor_B = _NumofSensor_;
@@ -776,22 +825,22 @@ void run_PID_B(int RUN_PID_speed , int RUN_PID_Mspeed, float RUN_PID_KP, float R
   int present_position = readline_B();
   int setpoint = ((_NumofSensor_B - 1) * 100) / 2;
   errors = present_position - setpoint;
-  integral = integral + errors ;
-  derivative = (errors - previous_error) ;
+  static int _previous_error_B = 0;
+  derivative = (errors - _previous_error_B) ;
   output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
-    previous_error = errors;
   int max_output = RUN_PID_Mspeed;
   if (output > max_output)output = max_output;
   else if (output < -max_output)output = -max_output;
   int m1Speed = speed_PID - output ;
   int m2Speed = speed_PID + output;
-  if(m1Speed < 0 )m1Speed = 0;
-  if(m2Speed < 0 )m2Speed = 0;
+
+  m1Speed = constrain(m1Speed, 0, RUN_PID_speed);
+    m2Speed = constrain(m2Speed, 0, RUN_PID_speed);
 
   motor(1,-m1Speed);
   motor(2,-m2Speed);
   delay(1);
-    previous_error_B = errors;
+    _previous_error_B = errors;
 
 }
 void setCalibrate_B(int cal_round) {
@@ -891,17 +940,20 @@ void Run_PID_B_until_backSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID
     int present_position_B = readline_B();
     int setpoint_B = ((_NumofSensor_B - 1) * 100) / 2;
     errors_B = present_position_B - setpoint_B;
-    integral_B = integral_B + errors_B ;
-    derivative_B = (errors_B - previous_error_B) ;
+    static int _previous_error_B = 0;
+    derivative_B = (errors_B - _previous_error_B) ;
     output_B = RUN_PID_KP * errors_B  + RUN_PID_KD * derivative_B;
     
     int m1Speed = RUN_PID_speed - output_B ;
     int m2Speed = RUN_PID_speed + output_B;
 
+    m1Speed = constrain(m1Speed, -RUN_PID_speed, RUN_PID_speed);
+    m2Speed = constrain(m2Speed, -RUN_PID_speed, RUN_PID_speed);
+
     motor(1,-m1Speed);
     motor(2,-m2Speed);
     delay(1);
-    previous_error_B = errors_B;
+    _previous_error_B = errors_B;
   }while(Read_sumValue_sensor_B() < sumValue_traget);
 }
 void Run_PID_B4DW_until_backSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_KD ,int sumValue_traget){
@@ -909,19 +961,22 @@ void Run_PID_B4DW_until_backSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_
     int present_position_B = readline_B();
     int setpoint_B = ((_NumofSensor_B - 1) * 100) / 2;
     errors_B = present_position_B - setpoint_B;
-    integral_B = integral_B + errors_B ;
-    derivative_B = (errors_B - previous_error_B) ;
+    static int _previous_error_B = 0;
+    derivative_B = (errors_B - _previous_error_B) ;
     output_B = RUN_PID_KP * errors_B  + RUN_PID_KD * derivative_B;
     
     int m1Speed = RUN_PID_speed - output_B ;
     int m2Speed = RUN_PID_speed + output_B;
+
+    m1Speed = constrain(m1Speed, -RUN_PID_speed, RUN_PID_speed);
+    m2Speed = constrain(m2Speed, -RUN_PID_speed, RUN_PID_speed);
 
     motor(1,-m1Speed);
     motor(2,-m2Speed);
     motor(3,-m1Speed);
     motor(4,-m2Speed);
     delay(1);
-    previous_error_B = errors_B;
+    _previous_error_B = errors_B;
   }while(Read_sumValue_sensor_B() < sumValue_traget);
 }
 
@@ -930,16 +985,20 @@ void Run_PID_until_frontSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_
     int present_position = readline();
     int setpoint = ((_NumofSensor - 1) * 100) / 2;
     errors = present_position - setpoint;
-    integral = integral + errors ;
-    derivative = (errors - previous_error) ;
+    static int _previous_error = 0;
+    derivative = (errors - _previous_error) ;
     output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
     
     int m1Speed = RUN_PID_speed + output ;
     int m2Speed = RUN_PID_speed - output;
+
+    m1Speed = constrain(m1Speed, -RUN_PID_speed, RUN_PID_speed);
+    m2Speed = constrain(m2Speed, -RUN_PID_speed, RUN_PID_speed);
+
     motor(1,m1Speed);
     motor(2,m2Speed);
     delay(1);
-    previous_error = errors;
+    _previous_error = errors;
   }while(Read_sumValue_sensor() < sumValue_traget);
 }
 void Run_PID4DW_until_frontSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_PID_KD ,int sumValue_traget){
@@ -947,18 +1006,56 @@ void Run_PID4DW_until_frontSensor(int RUN_PID_speed,float RUN_PID_KP,float RUN_P
     int present_position = readline();
     int setpoint = ((_NumofSensor - 1) * 100) / 2;
     errors = present_position - setpoint;
-    integral = integral + errors ;
-    derivative = (errors - previous_error) ;
+    static int _previous_error = 0;
+    derivative = (errors - _previous_error) ;
     output = RUN_PID_KP * errors  + RUN_PID_KD * derivative;
     
 
     int m1Speed = RUN_PID_speed + output ;
     int m2Speed = RUN_PID_speed - output;
+
+    m1Speed = constrain(m1Speed, -RUN_PID_speed, RUN_PID_speed);
+    m2Speed = constrain(m2Speed, -RUN_PID_speed, RUN_PID_speed);
+
     motor(1,m1Speed);
     motor(2,m2Speed);
     motor(3,m1Speed);
     motor(4,m2Speed);
     delay(1);
-    previous_error = errors;
+    _previous_error = errors;
   }while(Read_sumValue_sensor() < sumValue_traget);
+}
+
+long Read_Color_TCS(int color_of_sensor)
+{
+
+  uint16_t clearcol_lib, red_lib, green_lib, blue_lib,lux,colorTemp;
+  float average_lib, r_lib, g_lib, b_lib;
+  long data_color = 0.00;
+ //delay(100); // Farbmessung dauert c. 50ms 
+ tcs.getRawData(&red_lib, &green_lib, &blue_lib, &clearcol_lib);
+ colorTemp = tcs.calculateColorTemperature(red_lib, green_lib, blue_lib);
+  lux = tcs.calculateLux(red_lib, green_lib, blue_lib);
+
+ average_lib = (red_lib+green_lib+blue_lib)/3;
+ r_lib = red_lib/average_lib;
+ g_lib = green_lib/average_lib;
+ b_lib = blue_lib/average_lib;
+ if(color_of_sensor == 0){
+  data_color =  r_lib*100;
+ }
+ else if(color_of_sensor == 1){
+  data_color =  g_lib*100;
+ }
+  else if(color_of_sensor == 2){
+  data_color =  b_lib*100;
+ }
+ else if(color_of_sensor == 3){
+  data_color =  colorTemp;
+ }
+ else if(color_of_sensor == 4){
+  data_color =  lux;
+ }
+
+  return data_color;
 }
